@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Serilog;
 using TravelRequests.Infrastructure.Persistence;
 using TravelRequests.Application.Contracts.Repositories;
 using TravelRequests.Infrastructure.Repositories;
@@ -11,8 +12,24 @@ using TravelRequests.Application.Contracts.Services;
 using TravelRequests.Application.Services;
 using TravelRequests.Application.Validators.Auth;
 using TravelRequests.Application.Validators.TravelRequest;
+using TravelRequests.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "TravelRequests.Api")
+    .WriteTo.Console()
+    .WriteTo.File("logs/travelrequests-.txt", 
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        fileSizeLimitBytes: 10 * 1024 * 1024) // 10MB
+    .CreateLogger();
+
+// Use Serilog
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -73,6 +90,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Add error handling middleware (should be early in pipeline)
+app.UseErrorHandling();
 
 app.UseHttpsRedirection();
 app.UseAuthentication(); // JWT Authentication

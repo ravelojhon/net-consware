@@ -10,7 +10,8 @@ public class ChangeStatusRequestValidator : AbstractValidator<ChangeStatusReques
     {
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Invalid status specified")
-            .Must(BeValidStatusChange).WithMessage("Invalid status change");
+            .Must(status => status == TravelRequestStatus.Approved || status == TravelRequestStatus.Rejected)
+            .WithMessage("Only Approved or Rejected status changes are allowed");
 
         RuleFor(x => x.RejectionReason)
             .NotEmpty().When(x => x.Status == TravelRequestStatus.Rejected)
@@ -21,10 +22,4 @@ public class ChangeStatusRequestValidator : AbstractValidator<ChangeStatusReques
             .WithMessage("Rejection reason contains invalid characters");
     }
 
-    private static bool BeValidStatusChange(ChangeStatusRequest request)
-    {
-        // Solo se permiten cambios a Aprobada o Rechazada
-        return request.Status == TravelRequestStatus.Approved || 
-               request.Status == TravelRequestStatus.Rejected;
-    }
 }
