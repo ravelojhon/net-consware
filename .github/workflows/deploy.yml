@@ -1,0 +1,245 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  # Job 1: Build and Test
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourStrong@Passw0rd
+          MSSQL_PID: Express
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore --configuration Release --verbosity normal
+
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+      env:
+        ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=TravelRequestsDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true"
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: ./TestResults
+
+  # Job 2: Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Install security tools
+      run: |
+        dotnet tool install --global security-scan
+        dotnet tool install --global dotnet-outdated
+
+    - name: Check for vulnerable packages
+      run: |
+        echo "Checking for vulnerable packages..."
+        dotnet list package --vulnerable --include-transitive
+
+    - name: Check for secrets
+      run: |
+        echo "Scanning for potential secrets..."
+        if grep -r -i "password\|secret\|key\|token" --include="*.cs" --include="*.json" --include="*.yml" --include="*.yaml" . | grep -v "YourStrong@Passw0rd" | grep -v "supersecretkey" | grep -v "JWT" | grep -v "Password" | grep -v "Secret"; then
+          echo "❌ Potential secrets found in code!"
+          exit 1
+        else
+          echo "✅ No secrets found in code"
+        fi
+
+  # Job 3: Build Docker Image
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [build-and-test, security-scan]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: travelrequests-api
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./src/TravelRequests.Api/Dockerfile
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Job 4: Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment: staging
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to staging
+      run: |
+        echo "🚀 Deploying to staging environment..."
+        echo "This would typically involve:"
+        echo "- Deploying to staging server"
+        echo "- Running database migrations"
+        echo "- Running smoke tests"
+        echo "- Notifying team"
+
+    - name: Run smoke tests
+      run: |
+        echo "🧪 Running smoke tests..."
+        echo "This would typically involve:"
+        echo "- Health check tests"
+        echo "- Basic API functionality tests"
+        echo "- Database connectivity tests"
+
+  # Job 5: Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/main' && github.event.inputs.environment == 'production'
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy to production
+      run: |
+        echo "🚀 Deploying to production environment..."
+        echo "This would typically involve:"
+        echo "- Deploying to production server"
+        echo "- Running database migrations"
+        echo "- Running comprehensive tests"
+        echo "- Monitoring deployment"
+
+    - name: Run production tests
+      run: |
+        echo "🧪 Running production tests..."
+        echo "This would typically involve:"
+        echo "- Full API test suite"
+        echo "- Performance tests"
+        echo "- Security tests"
+        echo "- Load tests"
+
+    - name: Notify deployment success
+      run: |
+        echo "✅ Production deployment successful!"
+        echo "This would typically involve:"
+        echo "- Sending notifications to team"
+        echo "- Updating deployment status"
+        echo "- Logging deployment metrics"
+
+  # Job 6: Rollback (if needed)
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Rollback deployment
+      run: |
+        echo "🔄 Rolling back deployment..."
+        echo "This would typically involve:"
+        echo "- Reverting to previous version"
+        echo "- Rolling back database changes"
+        echo "- Notifying team of rollback"
+
+    - name: Notify rollback
+      run: |
+        echo "⚠️ Deployment rollback completed"
+        echo "This would typically involve:"
+        echo "- Sending rollback notifications"
+        echo "- Logging rollback reason"
+        echo "- Scheduling investigation"

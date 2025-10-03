@@ -1,0 +1,68 @@
+version: 2
+updates:
+  # Enable version updates for .NET
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ravelojhon"
+    assignees:
+      - "ravelojhon"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "dotnet"
+    groups:
+      microsoft-aspnetcore:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+      microsoft-entityframework:
+        patterns:
+          - "Microsoft.EntityFrameworkCore.*"
+      microsoft-extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+      serilog:
+        patterns:
+          - "Serilog.*"
+      fluentvalidation:
+        patterns:
+          - "FluentValidation.*"
+      jwt:
+        patterns:
+          - "Microsoft.AspNetCore.Authentication.JwtBearer"
+          - "System.IdentityModel.Tokens.Jwt"
+      testing:
+        patterns:
+          - "xunit.*"
+          - "Moq"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet.*"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ravelojhon"
+    assignees:
+      - "ravelojhon"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"

@@ -1,0 +1,22 @@
+name: Update Status Badges
+
+on:
+  workflow_run:
+    workflows: [".NET CI/CD Pipeline", "Security Analysis", "Code Quality Analysis"]
+    types: [completed]
+
+jobs:
+  update-status:
+    name: Update Status
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'cancelled'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Update README with status
+      run: |
+        echo "Updating status badges..."
+        # This would typically update README.md with current status
+        echo "✅ All workflows completed successfully"

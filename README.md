@@ -1,6 +1,14 @@
 # TravelRequests
 
-Sistema de gestión de solicitudes de viaje desarrollado con .NET 6+ y arquitectura limpia.
+[![.NET CI/CD Pipeline](https://github.com/ravelojhon/net-consware/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ravelojhon/net-consware/actions/workflows/dotnet.yml)
+[![Security Analysis](https://github.com/ravelojhon/net-consware/actions/workflows/security.yml/badge.svg)](https://github.com/ravelojhon/net-consware/actions/workflows/security.yml)
+[![Code Quality Analysis](https://github.com/ravelojhon/net-consware/actions/workflows/code-quality.yml/badge.svg)](https://github.com/ravelojhon/net-consware/actions/workflows/code-quality.yml)
+[![CodeQL Analysis](https://github.com/ravelojhon/net-consware/actions/workflows/codeql.yml/badge.svg)](https://github.com/ravelojhon/net-consware/actions/workflows/codeql.yml)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://github.com/ravelojhon/net-consware)
+[![.NET](https://img.shields.io/badge/.NET-9.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/9.0)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+Sistema de gestión de solicitudes de viaje desarrollado con .NET 9.0 y arquitectura limpia.
 
 ## Estructura del Proyecto
 
@@ -74,6 +82,32 @@ docs: actualizar README con instrucciones de Docker
 test: agregar pruebas unitarias para servicio de validación
 ```
 
+## 🚀 CI/CD y Calidad de Código
+
+Este proyecto incluye un pipeline completo de CI/CD con GitHub Actions que verifica:
+
+### ✅ Verificaciones Automáticas
+- **Compilación**: Build automático en cada push/PR
+- **Tests**: Ejecución de tests unitarios e integración
+- **Seguridad**: Análisis de vulnerabilidades y secretos
+- **Calidad**: Verificación de formato y complejidad
+- **Docker**: Build y test de contenedores
+- **Migraciones**: Validación de migraciones de BD
+
+### 🔧 Workflows Disponibles
+- **`.NET CI/CD Pipeline`**: Pipeline principal con build, tests y análisis
+- **`Security Analysis`**: Análisis de seguridad y dependencias
+- **`Code Quality Analysis`**: Verificación de calidad de código
+- **`Deploy`**: Despliegue automático a staging/production
+- **`CodeQL`**: Análisis de seguridad avanzado
+
+### 📊 Métricas de Calidad
+- Cobertura de código
+- Análisis de vulnerabilidades
+- Verificación de formato
+- Análisis de complejidad
+- Documentación XML
+
 ## Desarrollo
 
 ### Ejecutar pruebas
@@ -89,6 +123,21 @@ dotnet watch run --project src/TravelRequests.Api
 ### Crear nueva migración
 ```bash
 dotnet ef migrations add <NombreMigracion> --project src/TravelRequests.Infrastructure --startup-project src/TravelRequests.Api
+```
+
+### Verificar calidad de código localmente
+```bash
+# Verificar formato
+dotnet format --verify-no-changes
+
+# Verificar vulnerabilidades
+dotnet list package --vulnerable --include-transitive
+
+# Verificar dependencias obsoletas
+dotnet outdated
+
+# Build con análisis
+dotnet build --configuration Release --verbosity normal /p:RunAnalyzersDuringBuild=true
 ```
 
 ## Arquitectura

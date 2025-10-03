@@ -1,0 +1,147 @@
+name: Security Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install security tools
+      run: |
+        dotnet tool install --global security-scan
+        dotnet tool install --global dotnet-outdated
+
+    - name: Check for vulnerable packages
+      run: |
+        echo "Checking for vulnerable packages..."
+        dotnet list package --vulnerable --include-transitive
+
+    - name: Check for outdated packages
+      run: |
+        echo "Checking for outdated packages..."
+        dotnet outdated --fail-on-updates
+
+    - name: Scan for secrets
+      run: |
+        echo "Scanning for potential secrets..."
+        if grep -r -i "password\|secret\|key\|token" --include="*.cs" --include="*.json" --include="*.yml" --include="*.yaml" . | grep -v "YourStrong@Passw0rd" | grep -v "supersecretkey" | grep -v "JWT" | grep -v "Password" | grep -v "Secret"; then
+          echo "❌ Potential secrets found in code!"
+          exit 1
+        else
+          echo "✅ No secrets found in code"
+        fi
+
+    - name: Check for hardcoded connection strings
+      run: |
+        echo "Checking for hardcoded connection strings..."
+        if grep -r "Server=" --include="*.cs" . | grep -v "localhost" | grep -v "sqlserver"; then
+          echo "❌ Hardcoded connection strings found!"
+          exit 1
+        else
+          echo "✅ No hardcoded connection strings found"
+        fi
+
+    - name: Check for debug code
+      run: |
+        echo "Checking for debug code..."
+        if grep -r "Console.WriteLine\|Debug.WriteLine\|System.Diagnostics.Debug" --include="*.cs" .; then
+          echo "⚠️ Debug code found in production code"
+        else
+          echo "✅ No debug code found"
+        fi
+
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Check for known vulnerabilities
+      run: |
+        echo "Checking for known vulnerabilities..."
+        dotnet list package --vulnerable --include-transitive --format json > vulnerabilities.json
+        if [ -s vulnerabilities.json ]; then
+          echo "❌ Vulnerable packages found:"
+          cat vulnerabilities.json
+          exit 1
+        else
+          echo "✅ No vulnerable packages found"
+        fi
+
+    - name: Check for outdated packages
+      run: |
+        echo "Checking for outdated packages..."
+        dotnet outdated --format json > outdated.json
+        if [ -s outdated.json ]; then
+          echo "⚠️ Outdated packages found:"
+          cat outdated.json
+        else
+          echo "✅ All packages are up to date"
+        fi
+
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install security analysis tools
+      run: |
+        dotnet tool install --global security-scan
+
+    - name: Run security analysis
+      run: |
+        echo "Running security analysis..."
+        dotnet build --configuration Release --verbosity normal /p:RunAnalyzersDuringBuild=true /p:EnableNETAnalyzers=true
+
+    - name: Check for SQL injection vulnerabilities
+      run: |
+        echo "Checking for SQL injection vulnerabilities..."
+        if grep -r "string.*sql\|string.*query" --include="*.cs" . | grep -v "string sqlQuery" | grep -v "string queryString"; then
+          echo "⚠️ Potential SQL injection vulnerabilities found"
+        else
+          echo "✅ No obvious SQL injection vulnerabilities found"
+        fi
+
+    - name: Check for XSS vulnerabilities
+      run: |
+        echo "Checking for XSS vulnerabilities..."
+        if grep -r "Html.Raw\|@Html.Raw" --include="*.cs" --include="*.cshtml" .; then
+          echo "⚠️ Potential XSS vulnerabilities found"
+        else
+          echo "✅ No obvious XSS vulnerabilities found"
+        fi

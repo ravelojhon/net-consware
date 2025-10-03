@@ -1,0 +1,200 @@
+name: Code Quality Analysis
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  code-formatting:
+    name: Code Formatting Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install formatting tools
+      run: dotnet tool install --global dotnet-format
+
+    - name: Check code formatting
+      run: |
+        echo "Checking code formatting..."
+        dotnet format --verify-no-changes --verbosity diagnostic
+
+    - name: Check for trailing whitespace
+      run: |
+        echo "Checking for trailing whitespace..."
+        if find . -name "*.cs" -exec grep -l '[[:space:]]$' {} \; | head -5; then
+          echo "❌ Files with trailing whitespace found"
+          find . -name "*.cs" -exec grep -l '[[:space:]]$' {} \; | head -5
+          exit 1
+        else
+          echo "✅ No trailing whitespace found"
+        fi
+
+  code-analysis:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build with analysis
+      run: |
+        dotnet build --configuration Release --verbosity normal \
+          /p:RunAnalyzersDuringBuild=true \
+          /p:EnableNETAnalyzers=true \
+          /p:AnalysisMode=All \
+          /p:WarningsAsErrors=false
+
+    - name: Check for TODO comments
+      run: |
+        echo "Checking for TODO comments..."
+        if grep -r "TODO\|FIXME\|HACK" --include="*.cs" . | head -5; then
+          echo "⚠️ TODO/FIXME/HACK comments found:"
+          grep -r "TODO\|FIXME\|HACK" --include="*.cs" . | head -5
+        else
+          echo "✅ No TODO/FIXME/HACK comments found"
+        fi
+
+    - name: Check for unused using statements
+      run: |
+        echo "Checking for unused using statements..."
+        dotnet build --configuration Release --verbosity normal /p:WarningsAsErrors=false 2>&1 | grep "unused using" || echo "✅ No unused using statements found"
+
+  complexity-analysis:
+    name: Complexity Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install complexity analysis tools
+      run: |
+        dotnet tool install --global dotnet-reportgenerator-globaltool
+
+    - name: Run complexity analysis
+      run: |
+        echo "Running complexity analysis..."
+        dotnet build --configuration Release --verbosity normal /p:RunAnalyzersDuringBuild=true
+
+    - name: Check for long methods
+      run: |
+        echo "Checking for methods with more than 50 lines..."
+        find src -name "*.cs" -exec awk 'BEGIN{method=0; lines=0} /public|private|protected.*\(/{method=1; lines=0} method && /^[[:space:]]*[a-zA-Z]/{lines++} method && /^[[:space:]]*}/ && lines > 50{print FILENAME ":" NR " - Method with " lines " lines"; method=0; lines=0}' {} \;
+
+    - name: Check for large classes
+      run: |
+        echo "Checking for classes with more than 500 lines..."
+        find src -name "*.cs" -exec wc -l {} \; | awk '$1 > 500 {print $2 " has " $1 " lines"}' || echo "✅ No large classes found"
+
+  documentation-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Build with XML documentation
+      run: |
+        dotnet build src/TravelRequests.Api/TravelRequests.Api.csproj \
+          --configuration Release \
+          /p:GenerateDocumentationFile=true \
+          /p:DocumentationFile=bin/Release/net9.0/TravelRequests.Api.xml
+
+    - name: Check for missing XML documentation
+      run: |
+        echo "Checking for missing XML documentation..."
+        find src -name "*.cs" -exec grep -L "/// <summary>" {} \; | grep -v "Program.cs" | grep -v "GlobalUsings.cs" | grep -v "HealthController.cs" | head -10 || echo "✅ All public APIs have XML documentation"
+
+    - name: Check README completeness
+      run: |
+        echo "Checking README completeness..."
+        if [ -f "README.md" ]; then
+          echo "✅ README.md exists"
+          if grep -q "## Getting Started" README.md; then
+            echo "✅ Getting Started section found"
+          else
+            echo "⚠️ Getting Started section missing"
+          fi
+          if grep -q "## API Documentation" README.md; then
+            echo "✅ API Documentation section found"
+          else
+            echo "⚠️ API Documentation section missing"
+          fi
+        else
+          echo "❌ README.md not found"
+          exit 1
+        fi
+
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Check for async/await usage
+      run: |
+        echo "Checking for proper async/await usage..."
+        if grep -r "\.Result\|\.Wait()" --include="*.cs" . | grep -v "Test" | head -5; then
+          echo "⚠️ Potential blocking calls found:"
+          grep -r "\.Result\|\.Wait()" --include="*.cs" . | grep -v "Test" | head -5
+        else
+          echo "✅ No blocking calls found"
+        fi
+
+    - name: Check for disposed resources
+      run: |
+        echo "Checking for proper resource disposal..."
+        if grep -r "new.*Stream\|new.*FileStream\|new.*SqlConnection" --include="*.cs" . | grep -v "using" | head -5; then
+          echo "⚠️ Potential resource leaks found:"
+          grep -r "new.*Stream\|new.*FileStream\|new.*SqlConnection" --include="*.cs" . | grep -v "using" | head -5
+        else
+          echo "✅ No obvious resource leaks found"
+        fi
+
+    - name: Check for string concatenation in loops
+      run: |
+        echo "Checking for string concatenation in loops..."
+        if grep -r "for.*{.*string.*+=" --include="*.cs" . | head -5; then
+          echo "⚠️ String concatenation in loops found:"
+          grep -r "for.*{.*string.*+=" --include="*.cs" . | head -5
+        else
+          echo "✅ No string concatenation in loops found"
+        fi
