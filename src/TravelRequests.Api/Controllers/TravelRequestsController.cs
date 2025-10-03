@@ -7,6 +7,9 @@ using TravelRequests.Domain.Enums;
 
 namespace TravelRequests.Api.Controllers;
 
+/// <summary>
+/// Controlador para gestión de solicitudes de viaje
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -19,7 +22,18 @@ public class TravelRequestsController : ControllerBase
         _travelRequestService = travelRequestService;
     }
 
+    /// <summary>
+    /// Obtiene las solicitudes de viaje del usuario autenticado o todas si es aprobador
+    /// </summary>
+    /// <param name="all">Si es true y el usuario es aprobador, devuelve todas las solicitudes</param>
+    /// <param name="skip">Número de registros a omitir (paginación)</param>
+    /// <param name="take">Número de registros a tomar (paginación)</param>
+    /// <returns>Lista de solicitudes de viaje</returns>
+    /// <response code="200">Lista de solicitudes obtenida exitosamente</response>
+    /// <response code="401">Token JWT inválido o expirado</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<TravelRequestListResponse>), 200)]
+    [ProducesResponseType(401)]
     public async Task<ActionResult<IEnumerable<TravelRequestListResponse>>> GetTravelRequests(
         [FromQuery] bool all = false,
         [FromQuery] int skip = 0,
@@ -77,7 +91,18 @@ public class TravelRequestsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Crea una nueva solicitud de viaje
+    /// </summary>
+    /// <param name="request">Datos de la solicitud de viaje</param>
+    /// <returns>Solicitud de viaje creada</returns>
+    /// <response code="201">Solicitud creada exitosamente</response>
+    /// <response code="400">Datos de entrada inválidos</response>
+    /// <response code="401">Token JWT inválido o expirado</response>
     [HttpPost]
+    [ProducesResponseType(typeof(TravelRequestResponse), 201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
     public async Task<ActionResult<TravelRequestResponse>> CreateTravelRequest([FromBody] CreateTravelRequestRequest request)
     {
         try
@@ -126,7 +151,23 @@ public class TravelRequestsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Cambia el estado de una solicitud de viaje (solo para aprobadores)
+    /// </summary>
+    /// <param name="id">ID de la solicitud de viaje</param>
+    /// <param name="request">Nuevo estado y razón de rechazo (si aplica)</param>
+    /// <returns>Solicitud de viaje actualizada</returns>
+    /// <response code="200">Estado cambiado exitosamente</response>
+    /// <response code="400">Datos de entrada inválidos</response>
+    /// <response code="401">Token JWT inválido o expirado</response>
+    /// <response code="403">Usuario no tiene permisos de aprobador</response>
+    /// <response code="404">Solicitud no encontrada</response>
     [HttpPatch("{id}/status")]
+    [ProducesResponseType(typeof(TravelRequestResponse), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<ActionResult<TravelRequestResponse>> ChangeStatus(Guid id, [FromBody] ChangeStatusRequest request)
     {
         try
