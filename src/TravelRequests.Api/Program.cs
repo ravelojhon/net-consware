@@ -2,11 +2,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using TravelRequests.Infrastructure.Persistence;
 using TravelRequests.Application.Contracts.Repositories;
 using TravelRequests.Infrastructure.Repositories;
 using TravelRequests.Application.Contracts.Services;
 using TravelRequests.Application.Services;
+using TravelRequests.Application.Validators.Auth;
+using TravelRequests.Application.Validators.TravelRequest;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
 // Add Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
