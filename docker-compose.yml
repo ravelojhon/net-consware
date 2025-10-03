@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: travelrequests-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - travelrequests-network
+
+  api:
+    build:
+      context: .
+      dockerfile: src/TravelRequests.Api/Dockerfile
+    container_name: travelrequests-api
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TravelRequestsDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+    depends_on:
+      - sqlserver
+    networks:
+      - travelrequests-network
+
+volumes:
+  sqlserver_data:
+
+networks:
+  travelrequests-network:
+    driver: bridge
