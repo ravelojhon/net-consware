@@ -26,6 +26,7 @@ builder.Services.AddScoped<IPasswordResetCodeRepository, PasswordResetCodeReposi
 
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITravelRequestService, TravelRequestService>();
 
 // Add JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
