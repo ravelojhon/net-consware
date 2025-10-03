@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TravelRequests.Infrastructure.Persistence;
+using TravelRequests.Application.Contracts.Repositories;
+using TravelRequests.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,11 @@ builder.Services.AddSwaggerGen();
 // Add Entity Framework
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITravelRequestRepository, TravelRequestRepository>();
+builder.Services.AddScoped<IPasswordResetCodeRepository, PasswordResetCodeRepository>();
 
 var app = builder.Build();
 
