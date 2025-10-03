@@ -22,6 +22,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TravelRequests.Api\TravelRequests.Api.csproj" />
+    <ProjectReference Include="..\..\src\TravelRequests.Application\TravelRequests.Application.csproj" />
+    <ProjectReference Include="..\..\src\TravelRequests.Infrastructure\TravelRequests.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\TravelRequests.Domain\TravelRequests.Domain.csproj" />
   </ItemGroup>
 
 </Project>

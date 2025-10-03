@@ -51,7 +51,7 @@ public class AuthService : IAuthService
         var createdUser = await _userRepository.AddAsync(user);
 
         // Generar token
-        var token = await GenerateTokenAsync(createdUser.Id, createdUser.Email, createdUser.Role.ToString());
+        var token = await GenerateTokenAsync(createdUser.Id, createdUser.Email.ToString(), createdUser.Role.ToString());
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtExpirationMinutes);
 
         return new AuthResponse
@@ -81,7 +81,7 @@ public class AuthService : IAuthService
         }
 
         // Generar token
-        var token = await GenerateTokenAsync(user.Id, user.Email, user.Role.ToString());
+        var token = await GenerateTokenAsync(user.Id, user.Email.ToString(), user.Role.ToString());
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtExpirationMinutes);
 
         return new AuthResponse

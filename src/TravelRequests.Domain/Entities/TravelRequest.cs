@@ -18,6 +18,10 @@ public class TravelRequest
     public Guid? ApprovedBy { get; private set; }
     public DateTime? ApprovedAt { get; private set; }
 
+    // Navigation properties
+    public User User { get; private set; } = null!;
+    public User? ApprovedByUser { get; private set; }
+
     // Constructor privado para EF Core
     private TravelRequest() { }
 

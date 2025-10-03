@@ -103,14 +103,16 @@ public class TravelRequestRepository : Repository<TravelRequest>, ITravelRequest
     public async Task<TravelRequest?> GetWithUserAsync(Guid travelRequestId)
     {
         return await _dbSet
-            .Include(tr => _context.Users.Where(u => u.Id == tr.UserId))
+            .Include(tr => tr.User)
+            .Include(tr => tr.ApprovedByUser)
             .FirstOrDefaultAsync(tr => tr.Id == travelRequestId);
     }
 
     public async Task<IEnumerable<TravelRequest>> GetWithUsersAsync(int skip = 0, int take = 10)
     {
         return await _dbSet
-            .Include(tr => _context.Users.Where(u => u.Id == tr.UserId))
+            .Include(tr => tr.User)
+            .Include(tr => tr.ApprovedByUser)
             .OrderByDescending(tr => tr.CreatedAt)
             .Skip(skip)
             .Take(take)

@@ -95,4 +95,9 @@ public class Repository<T> : IRepository<T> where T : class
             await DeleteAsync(entity);
         }
     }
+
+    public virtual async Task<int> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync();
+    }
 }
