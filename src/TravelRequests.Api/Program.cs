@@ -128,6 +128,10 @@ builder.Services.AddAuthentication(options =>
 // Add Authorization
 builder.Services.AddAuthorization();
 
+// Add Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("database");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -143,6 +147,9 @@ app.UseErrorHandling();
 app.UseHttpsRedirection();
 app.UseAuthentication(); // JWT Authentication
 app.UseAuthorization(); // JWT Authorization
+
+// Map health checks
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();

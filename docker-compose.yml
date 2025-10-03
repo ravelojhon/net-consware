@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # SQL Server Database
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: travelrequests-sqlserver
@@ -12,26 +13,70 @@ services:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     networks:
       - travelrequests-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
+  # Travel Requests API
   api:
     build:
       context: .
       dockerfile: src/TravelRequests.Api/Dockerfile
     container_name: travelrequests-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TravelRequestsDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true
+      - Jwt__Key=TU_SUPER_SECRETO_AQUI_MUY_LARGO_Y_SEGURO_2025_DOCKER
+      - Jwt__Issuer=TravelRequestsApi
+      - Jwt__Audience=TravelRequestsClient
+      - Jwt__ExpirationMinutes=60
     ports:
       - "5000:80"
-      - "5001:443"
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=TravelRequestsDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
-    depends_on:
-      - sqlserver
+    volumes:
+      - api_logs:/app/logs
     networks:
       - travelrequests-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # Database Migration Service (Optional)
+  migration:
+    build:
+      context: .
+      dockerfile: src/TravelRequests.Api/Dockerfile
+    container_name: travelrequests-migration
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=TravelRequestsDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true
+    command: ["dotnet", "ef", "database", "update", "--project", "src/TravelRequests.Infrastructure", "--startup-project", "src/TravelRequests.Api"]
+    networks:
+      - travelrequests-network
+    profiles:
+      - migration
 
 volumes:
   sqlserver_data:
+    driver: local
+  api_logs:
+    driver: local
 
 networks:
   travelrequests-network:
