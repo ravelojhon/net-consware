@@ -12,6 +12,11 @@ public class User
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
+    // Navigation properties
+    public ICollection<TravelRequest> TravelRequests { get; private set; } = new List<TravelRequest>();
+    public ICollection<TravelRequest> ApprovedTravelRequests { get; private set; } = new List<TravelRequest>();
+    public ICollection<PasswordResetCode> PasswordResetCodes { get; private set; } = new List<PasswordResetCode>();
+
     // Constructor privado para EF Core
     private User() { }
 

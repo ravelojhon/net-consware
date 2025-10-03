@@ -145,6 +145,14 @@ public class IntegrationTests : IDisposable
         var travelRequest = await _travelRequestService.CreateAsync(createRequest, Guid.Parse(employeeAuth.UserId));
         Assert.Equal(TravelRequestStatus.Pending, travelRequest.Status);
 
+        // Configurar las propiedades de navegación en la base de datos
+        var createdTravelRequest = await _context.TravelRequests
+            .Include(tr => tr.User)
+            .Include(tr => tr.ApprovedByUser)
+            .FirstOrDefaultAsync(tr => tr.Id == travelRequest.Id);
+        
+        Assert.NotNull(createdTravelRequest);
+
         // Act 2: Manager approves the request
         var changeStatusRequest = new ChangeStatusRequest
         {
@@ -185,6 +193,14 @@ public class IntegrationTests : IDisposable
 
         var travelRequest = await _travelRequestService.CreateAsync(createRequest, Guid.Parse(employeeAuth.UserId));
         Assert.Equal(TravelRequestStatus.Pending, travelRequest.Status);
+
+        // Configurar las propiedades de navegación en la base de datos
+        var createdTravelRequest = await _context.TravelRequests
+            .Include(tr => tr.User)
+            .Include(tr => tr.ApprovedByUser)
+            .FirstOrDefaultAsync(tr => tr.Id == travelRequest.Id);
+        
+        Assert.NotNull(createdTravelRequest);
 
         // Act 2: Manager rejects the request
         var changeStatusRequest = new ChangeStatusRequest

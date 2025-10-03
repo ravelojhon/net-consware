@@ -26,6 +26,9 @@ public class AppDbContext : DbContext
         
         // Configurar PasswordResetCode
         ConfigurePasswordResetCode(modelBuilder);
+        
+        // Configurar relaciones
+        ConfigureRelationships(modelBuilder);
     }
 
     private void ConfigureUser(ModelBuilder modelBuilder)
@@ -191,5 +194,29 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => new { e.Code, e.IsUsed, e.ExpiresAt })
                 .HasDatabaseName("IX_PasswordResetCodes_Code_IsUsed_ExpiresAt");
         });
+    }
+
+    private void ConfigureRelationships(ModelBuilder modelBuilder)
+    {
+        // Relación User -> TravelRequests (1:N)
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.TravelRequests)
+            .WithOne(tr => tr.User)
+            .HasForeignKey(tr => tr.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relación User -> ApprovedTravelRequests (1:N)
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.ApprovedTravelRequests)
+            .WithOne(tr => tr.ApprovedByUser)
+            .HasForeignKey(tr => tr.ApprovedBy)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // Relación User -> PasswordResetCodes (1:N)
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.PasswordResetCodes)
+            .WithOne(prc => prc.User)
+            .HasForeignKey(prc => prc.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

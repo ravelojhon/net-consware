@@ -10,6 +10,9 @@ public class PasswordResetCode
     public bool IsUsed { get; private set; }
     public DateTime? UsedAt { get; private set; }
 
+    // Navigation properties
+    public User User { get; private set; } = null!;
+
     // Constructor privado para EF Core
     private PasswordResetCode() { }
 
