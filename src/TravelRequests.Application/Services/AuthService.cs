@@ -14,6 +14,7 @@ namespace TravelRequests.Application.Services;
 public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IPasswordResetCodeRepository _passwordResetCodeRepository;
     private readonly IConfiguration _configuration;
     private readonly string _jwtKey;
     private readonly string _jwtIssuer;
@@ -22,9 +23,11 @@ public class AuthService : IAuthService
 
     public AuthService(
         IUserRepository userRepository,
+        IPasswordResetCodeRepository passwordResetCodeRepository,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _passwordResetCodeRepository = passwordResetCodeRepository;
         _configuration = configuration;
         _jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
         _jwtIssuer = _configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
@@ -163,5 +166,71 @@ public class AuthService : IAuthService
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
+    }
+
+    public async Task<PasswordResetResponse> RequestPasswordResetAsync(RequestPasswordResetRequest request)
+    {
+        // Verificar si el usuario existe
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        // Generar código de 6 dígitos
+        var random = new Random();
+        var code = random.Next(100000, 999999).ToString();
+
+        // Calcular expiración (5 minutos)
+        var expiresAt = DateTime.UtcNow.AddMinutes(5);
+
+        // Crear código de reset
+        var passwordResetCode = new PasswordResetCode(user.Id, code, expiresAt);
+        await _passwordResetCodeRepository.AddAsync(passwordResetCode);
+
+        return new PasswordResetResponse
+        {
+            Email = request.Email,
+            Code = code,
+            ExpiresAt = expiresAt
+        };
+    }
+
+    public async Task ConfirmPasswordResetAsync(ConfirmPasswordResetRequest request)
+    {
+        // Verificar si el usuario existe
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        // Buscar código de reset válido
+        var resetCode = await _passwordResetCodeRepository.GetByCodeAsync(request.Code);
+        if (resetCode == null || resetCode.UserId != user.Id)
+        {
+            throw new InvalidOperationException("Invalid reset code");
+        }
+
+        // Verificar que no haya expirado
+        if (resetCode.ExpiresAt <= DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("Reset code has expired");
+        }
+
+        // Verificar que no haya sido usado
+        if (resetCode.IsUsed)
+        {
+            throw new InvalidOperationException("Reset code has already been used");
+        }
+
+        // Actualizar contraseña del usuario
+        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.ChangePassword(newPasswordHash);
+        await _userRepository.UpdateAsync(user);
+
+        // Marcar código como usado
+        resetCode.MarkAsUsed();
+        await _passwordResetCodeRepository.UpdateAsync(resetCode);
     }
 }

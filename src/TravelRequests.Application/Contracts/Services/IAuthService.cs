@@ -9,4 +9,6 @@ public interface IAuthService
     Task<UserResponse?> GetUserByIdAsync(Guid userId);
     Task<bool> ValidateTokenAsync(string token);
     Task<string> GenerateTokenAsync(Guid userId, string email, string role);
+    Task<PasswordResetResponse> RequestPasswordResetAsync(RequestPasswordResetRequest request);
+    Task ConfirmPasswordResetAsync(ConfirmPasswordResetRequest request);
 }

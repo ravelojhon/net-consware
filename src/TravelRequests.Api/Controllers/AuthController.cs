@@ -92,6 +92,42 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { message = "An error occurred while validating token", error = ex.Message });
         }
     }
+
+    [HttpPost("request-password-reset")]
+    public async Task<ActionResult<PasswordResetResponse>> RequestPasswordReset([FromBody] RequestPasswordResetRequest request)
+    {
+        try
+        {
+            var response = await _authService.RequestPasswordResetAsync(request);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while requesting password reset", error = ex.Message });
+        }
+    }
+
+    [HttpPost("confirm-password-reset")]
+    public async Task<ActionResult> ConfirmPasswordReset([FromBody] ConfirmPasswordResetRequest request)
+    {
+        try
+        {
+            await _authService.ConfirmPasswordResetAsync(request);
+            return Ok(new { message = "Password has been successfully reset" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while confirming password reset", error = ex.Message });
+        }
+    }
 }
 
 public record ValidateTokenRequest(string Token);
