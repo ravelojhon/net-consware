@@ -72,7 +72,7 @@ public class PasswordResetTests
             .ReturnsAsync((User?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.RequestPasswordResetAsync(request));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(request.Email), Times.Once);
@@ -116,7 +116,7 @@ public class PasswordResetTests
             .ReturnsAsync((User?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.ConfirmPasswordResetAsync(request));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(request.Email), Times.Once);
@@ -136,7 +136,7 @@ public class PasswordResetTests
             .ReturnsAsync((PasswordResetCode?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.ConfirmPasswordResetAsync(request));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(request.Email), Times.Once);
@@ -150,9 +150,9 @@ public class PasswordResetTests
         var request = TestDataHelper.CreateConfirmPasswordResetRequest();
         var user = TestDataHelper.CreateTestUser(request.Email);
         var expiredCode = PasswordResetCode.CreateFromDatabase(
-            Guid.NewGuid(), 
-            user.Id, 
-            request.Code, 
+            Guid.NewGuid(),
+            user.Id,
+            request.Code,
             DateTime.UtcNow.AddMinutes(-1), // Código expirado
             DateTime.UtcNow.AddMinutes(-2),
             false,
@@ -165,7 +165,7 @@ public class PasswordResetTests
             .ReturnsAsync(expiredCode);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.ConfirmPasswordResetAsync(request));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(request.Email), Times.Once);
@@ -187,7 +187,7 @@ public class PasswordResetTests
             .ReturnsAsync(usedCode);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.ConfirmPasswordResetAsync(request));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(request.Email), Times.Once);
@@ -208,7 +208,7 @@ public class PasswordResetTests
             .ReturnsAsync(wrongUserCode);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.ConfirmPasswordResetAsync(request));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(request.Email), Times.Once);

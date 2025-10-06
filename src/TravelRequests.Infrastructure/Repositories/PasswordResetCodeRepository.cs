@@ -29,8 +29,8 @@ public class PasswordResetCodeRepository : Repository<PasswordResetCode>, IPassw
     {
         var now = DateTime.UtcNow;
         return await _dbSet
-            .Where(prc => prc.UserId == userId && 
-                         !prc.IsUsed && 
+            .Where(prc => prc.UserId == userId &&
+                         !prc.IsUsed &&
                          prc.ExpiresAt > now)
             .OrderByDescending(prc => prc.CreatedAt)
             .ToListAsync();
@@ -48,8 +48,8 @@ public class PasswordResetCodeRepository : Repository<PasswordResetCode>, IPassw
     {
         var now = DateTime.UtcNow;
         return await _dbSet
-            .AnyAsync(prc => prc.UserId == userId && 
-                            !prc.IsUsed && 
+            .AnyAsync(prc => prc.UserId == userId &&
+                            !prc.IsUsed &&
                             prc.ExpiresAt > now);
     }
 
@@ -57,8 +57,8 @@ public class PasswordResetCodeRepository : Repository<PasswordResetCode>, IPassw
     {
         var now = DateTime.UtcNow;
         return await _dbSet
-            .CountAsync(prc => prc.UserId == userId && 
-                              !prc.IsUsed && 
+            .CountAsync(prc => prc.UserId == userId &&
+                              !prc.IsUsed &&
                               prc.ExpiresAt > now);
     }
 
@@ -68,7 +68,7 @@ public class PasswordResetCodeRepository : Repository<PasswordResetCode>, IPassw
         var expiredCodes = await _dbSet
             .Where(prc => prc.ExpiresAt <= now)
             .ToListAsync();
-            
+
         if (expiredCodes.Any())
         {
             _dbSet.RemoveRange(expiredCodes);
@@ -81,7 +81,7 @@ public class PasswordResetCodeRepository : Repository<PasswordResetCode>, IPassw
         var userCodes = await _dbSet
             .Where(prc => prc.UserId == userId)
             .ToListAsync();
-            
+
         if (userCodes.Any())
         {
             _dbSet.RemoveRange(userCodes);

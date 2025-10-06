@@ -64,7 +64,7 @@ public class UsersController : ControllerBase
         // Crear nuevo usuario
         var user = new User(request.Name, request.Email, request.PasswordHash, request.Role);
         var createdUser = await _userRepository.AddAsync(user);
-        
+
         return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
     }
 

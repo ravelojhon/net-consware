@@ -24,7 +24,7 @@ public class User
     public User(string name, string email, string passwordHash, UserRole role)
     {
         ValidateInputs(name, email, passwordHash);
-        
+
         Id = Guid.NewGuid();
         Name = name;
         Email = email;
@@ -34,7 +34,7 @@ public class User
     }
 
     // Método de fábrica para crear usuario desde base de datos
-    public static User CreateFromDatabase(Guid id, string name, string email, string passwordHash, 
+    public static User CreateFromDatabase(Guid id, string name, string email, string passwordHash,
         UserRole role, DateTime createdAt, DateTime? updatedAt = null)
     {
         return new User
@@ -53,7 +53,7 @@ public class User
     public void UpdateProfile(string name, string email)
     {
         ValidateInputs(name, email, PasswordHash);
-        
+
         Name = name;
         Email = email;
         UpdatedAt = DateTime.UtcNow;
@@ -62,8 +62,10 @@ public class User
     public void ChangePassword(string newPasswordHash)
     {
         if (string.IsNullOrWhiteSpace(newPasswordHash))
+        {
             throw new ArgumentException("Password hash cannot be null or empty", nameof(newPasswordHash));
-            
+        }
+
         PasswordHash = newPasswordHash;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -77,16 +79,24 @@ public class User
     private static void ValidateInputs(string name, string email, string passwordHash)
     {
         if (string.IsNullOrWhiteSpace(name))
+        {
             throw new ArgumentException("Name cannot be null or empty", nameof(name));
-            
+        }
+
         if (string.IsNullOrWhiteSpace(email))
+        {
             throw new ArgumentException("Email cannot be null or empty", nameof(email));
-            
+        }
+
         if (!IsValidEmail(email))
+        {
             throw new ArgumentException("Invalid email format", nameof(email));
-            
+        }
+
         if (string.IsNullOrWhiteSpace(passwordHash))
+        {
             throw new ArgumentException("Password hash cannot be null or empty", nameof(passwordHash));
+        }
     }
 
     private static bool IsValidEmail(string email)

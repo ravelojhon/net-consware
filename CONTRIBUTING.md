@@ -31,13 +31,38 @@ Thank you for your interest in contributing to TravelRequests API! This document
 - Maintain or improve test coverage
 - Follow the existing test patterns
 
-### Commits
+### Git Workflow
+
+#### Commits
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 - `feat:` for new features
 - `fix:` for bug fixes
 - `docs:` for documentation changes
 - `test:` for test additions/changes
 - `chore:` for maintenance tasks
+
+#### Branching Strategy
+- **main**: Rama principal, solo recibe merges de PRs
+- **feature/**: Nuevas funcionalidades (`feature/auth-jwt`)
+- **fix/**: Correcciones de bugs (`fix/validation-error`)
+- **chore/**: Tareas de mantenimiento (`chore/update-dependencies`)
+- **release/**: Preparación de releases (`release/v1.0.0`)
+
+#### Git Hooks
+Los hooks automáticos validan:
+- ✅ Compilación del proyecto
+- ✅ Tests unitarios
+- ✅ Formato de código
+- ✅ Formato de mensajes de commit
+
+#### Alias Útiles
+```bash
+git lg          # Log con gráfico
+git cleanup     # Limpiar ramas merged
+git fresh       # Actualizar desde main
+git wip         # Commit temporal
+git unwip       # Deshacer commit temporal
+```
 
 ### Pull Requests
 1. Ensure all tests pass
@@ -75,6 +100,21 @@ dotnet test --collect:"XPlat Code Coverage"
 - Follow AAA pattern (Arrange, Act, Assert)
 
 ## 🔧 Development Commands
+
+### Git Setup
+```powershell
+# Configurar Git con mejores prácticas
+.\scripts\setup-git-config.ps1
+
+# Configurar medidas de seguridad
+.\scripts\git-security.ps1
+
+# Configurar Git hooks
+.\scripts\setup-git-hooks.ps1
+
+# Proteger rama main
+.\scripts\protect-main-branch.ps1
+```
 
 ### Database
 ```bash

@@ -1,4 +1,4 @@
-﻿namespace TravelRequests.Tests;
+namespace TravelRequests.Tests;
 
 public class UnitTest1
 {

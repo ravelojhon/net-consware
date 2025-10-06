@@ -72,7 +72,7 @@ public class AuthServiceTests
             .ReturnsAsync(true);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _authService.RegisterAsync(registerRequest));
 
         _userRepositoryMock.Verify(x => x.ExistsByEmailAsync(registerRequest.Email), Times.Once);
@@ -113,7 +113,7 @@ public class AuthServiceTests
             .ReturnsAsync((User?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => 
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _authService.LoginAsync(loginRequest));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(loginRequest.Email), Times.Once);
@@ -132,7 +132,7 @@ public class AuthServiceTests
             .ReturnsAsync(user);
 
         // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => 
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _authService.LoginAsync(loginRequest));
 
         _userRepositoryMock.Verify(x => x.GetByEmailAsync(loginRequest.Email), Times.Once);

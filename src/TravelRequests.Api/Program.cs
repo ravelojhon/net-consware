@@ -22,7 +22,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithProperty("Application", "TravelRequests.Api")
     .WriteTo.Console()
-    .WriteTo.File("logs/travelrequests-.txt", 
+    .WriteTo.File("logs/travelrequests-.txt",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30,
         fileSizeLimitBytes: 10 * 1024 * 1024) // 10MB

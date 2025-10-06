@@ -109,7 +109,7 @@ public class TravelRequestsController : ControllerBase
         {
             var userId = GetCurrentUserId();
             var travelRequest = await _travelRequestService.CreateAsync(request, userId);
-            
+
             return CreatedAtAction(nameof(GetTravelRequest), new { id = travelRequest.Id }, travelRequest);
         }
         catch (ArgumentException ex)
@@ -180,7 +180,7 @@ public class TravelRequestsController : ControllerBase
 
             var approverId = GetCurrentUserId();
             var updatedRequest = await _travelRequestService.ChangeStatusAsync(id, request, approverId);
-            
+
             return Ok(updatedRequest);
         }
         catch (InvalidOperationException ex)
@@ -241,7 +241,9 @@ public class TravelRequestsController : ControllerBase
     {
         var roleClaim = User.FindFirst("role") ?? User.FindFirst(ClaimTypes.Role);
         if (roleClaim == null)
+        {
             return false;
+        }
 
         return roleClaim.Value == "Manager" || roleClaim.Value == "Admin";
     }

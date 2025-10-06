@@ -77,7 +77,7 @@ public class TravelRequestServiceTests
         };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _travelRequestService.CreateAsync(request, userId));
 
         _travelRequestRepositoryMock.Verify(x => x.AddAsync(It.IsAny<TravelRequest>()), Times.Never);
@@ -98,7 +98,7 @@ public class TravelRequestServiceTests
         };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _travelRequestService.CreateAsync(request, userId));
 
         _travelRequestRepositoryMock.Verify(x => x.AddAsync(It.IsAny<TravelRequest>()), Times.Never);
@@ -119,7 +119,7 @@ public class TravelRequestServiceTests
         };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _travelRequestService.CreateAsync(request, userId));
 
         _travelRequestRepositoryMock.Verify(x => x.AddAsync(It.IsAny<TravelRequest>()), Times.Never);
@@ -242,7 +242,7 @@ public class TravelRequestServiceTests
             .ReturnsAsync(travelRequest);
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _travelRequestService.ChangeStatusAsync(travelRequestId, changeStatusRequest, approverId));
 
         _travelRequestRepositoryMock.Verify(x => x.GetWithUserAsync(travelRequestId), Times.Once);
@@ -278,7 +278,7 @@ public class TravelRequestServiceTests
             .ReturnsAsync(travelRequest);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _travelRequestService.ChangeStatusAsync(travelRequestId, changeStatusRequest, approverId));
 
         _travelRequestRepositoryMock.Verify(x => x.GetWithUserAsync(travelRequestId), Times.Once);
@@ -301,7 +301,7 @@ public class TravelRequestServiceTests
             .ReturnsAsync((TravelRequest?)null);
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => 
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _travelRequestService.ChangeStatusAsync(travelRequestId, changeStatusRequest, approverId));
 
         _travelRequestRepositoryMock.Verify(x => x.GetWithUserAsync(travelRequestId), Times.Once);
@@ -405,7 +405,7 @@ public class TravelRequestServiceTests
             .ReturnsAsync(travelRequest);
 
         // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => 
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             _travelRequestService.GetByIdAsync(travelRequestId, userId, isApprover));
 
         _travelRequestRepositoryMock.Verify(x => x.GetWithUserAsync(travelRequestId), Times.Once);

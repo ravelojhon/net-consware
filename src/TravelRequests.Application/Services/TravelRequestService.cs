@@ -42,11 +42,15 @@ public class TravelRequestService : ITravelRequestService
     {
         var travelRequest = await _travelRequestRepository.GetWithUserAsync(id);
         if (travelRequest == null)
+        {
             return null;
+        }
 
         // Verificar permisos
         if (!isApprover && travelRequest.UserId != userId)
+        {
             throw new UnauthorizedAccessException("You don't have permission to view this travel request");
+        }
 
         return await MapToResponseAsync(travelRequest);
     }
@@ -67,15 +71,21 @@ public class TravelRequestService : ITravelRequestService
     {
         var travelRequest = await _travelRequestRepository.GetByIdAsync(id);
         if (travelRequest == null)
+        {
             throw new InvalidOperationException("Travel request not found");
+        }
 
         // Verificar permisos
         if (!isApprover && travelRequest.UserId != userId)
+        {
             throw new UnauthorizedAccessException("You don't have permission to update this travel request");
+        }
 
         // Verificar que no esté aprobada o rechazada
         if (travelRequest.Status != TravelRequestStatus.Pending)
+        {
             throw new InvalidOperationException("Cannot update travel request that has been approved or rejected");
+        }
 
         // Validaciones de negocio
         ValidateTravelRequest(request);
@@ -97,11 +107,15 @@ public class TravelRequestService : ITravelRequestService
     {
         var travelRequest = await _travelRequestRepository.GetWithUserAsync(id);
         if (travelRequest == null)
+        {
             throw new InvalidOperationException("Travel request not found");
+        }
 
         // Verificar que solo esté pendiente
         if (travelRequest.Status != TravelRequestStatus.Pending)
+        {
             throw new InvalidOperationException("Can only change status of pending travel requests");
+        }
 
         // Cambiar estado
         if (request.Status == TravelRequestStatus.Approved)
@@ -111,8 +125,10 @@ public class TravelRequestService : ITravelRequestService
         else if (request.Status == TravelRequestStatus.Rejected)
         {
             if (string.IsNullOrWhiteSpace(request.RejectionReason))
+            {
                 throw new ArgumentException("Rejection reason is required when rejecting a travel request");
-            
+            }
+
             travelRequest.Reject(request.RejectionReason, approverId);
         }
         else
@@ -128,15 +144,21 @@ public class TravelRequestService : ITravelRequestService
     {
         var travelRequest = await _travelRequestRepository.GetByIdAsync(id);
         if (travelRequest == null)
+        {
             return false;
+        }
 
         // Verificar permisos
         if (!isApprover && travelRequest.UserId != userId)
+        {
             throw new UnauthorizedAccessException("You don't have permission to delete this travel request");
+        }
 
         // Verificar que esté pendiente
         if (travelRequest.Status != TravelRequestStatus.Pending)
+        {
             throw new InvalidOperationException("Cannot delete travel request that has been approved or rejected");
+        }
 
         await _travelRequestRepository.DeleteAsync(travelRequest);
         return true;
@@ -156,22 +178,28 @@ public class TravelRequestService : ITravelRequestService
     {
         // Validar que las fechas sean válidas
         if (dateFrom >= dateTo)
+        {
             throw new ArgumentException("End date must be after start date");
+        }
 
         // Validar que no sea en el pasado
         if (dateFrom < DateTime.Today)
+        {
             throw new ArgumentException("Travel dates cannot be in the past");
+        }
 
         // Validar que origen y destino sean diferentes
         if (string.Equals(originCity, destinationCity, StringComparison.OrdinalIgnoreCase))
+        {
             throw new ArgumentException("Origin and destination cities must be different");
+        }
     }
 
     private async Task<TravelRequestResponse> MapToResponseAsync(TravelRequest travelRequest)
     {
         var user = await _userRepository.GetByIdAsync(travelRequest.UserId);
-        var approver = travelRequest.ApprovedBy.HasValue 
-            ? await _userRepository.GetByIdAsync(travelRequest.ApprovedBy.Value) 
+        var approver = travelRequest.ApprovedBy.HasValue
+            ? await _userRepository.GetByIdAsync(travelRequest.ApprovedBy.Value)
             : null;
 
         return new TravelRequestResponse

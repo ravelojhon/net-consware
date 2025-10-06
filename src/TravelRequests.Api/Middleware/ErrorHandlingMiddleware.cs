@@ -198,7 +198,7 @@ public class ErrorHandlingMiddleware
             "used"
         };
 
-        return clientErrorMessages.Any(msg => 
+        return clientErrorMessages.Any(msg =>
             ex.Message.Contains(msg, StringComparison.OrdinalIgnoreCase));
     }
 

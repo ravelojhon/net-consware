@@ -150,7 +150,7 @@ public class IntegrationTests : IDisposable
             .Include(tr => tr.User)
             .Include(tr => tr.ApprovedByUser)
             .FirstOrDefaultAsync(tr => tr.Id == travelRequest.Id);
-        
+
         Assert.NotNull(createdTravelRequest);
 
         // Act 2: Manager approves the request
@@ -160,8 +160,8 @@ public class IntegrationTests : IDisposable
         };
 
         var approvedRequest = await _travelRequestService.ChangeStatusAsync(
-            travelRequest.Id, 
-            changeStatusRequest, 
+            travelRequest.Id,
+            changeStatusRequest,
             Guid.Parse(managerAuth.UserId));
 
         Assert.Equal(TravelRequestStatus.Approved, approvedRequest.Status);
@@ -199,7 +199,7 @@ public class IntegrationTests : IDisposable
             .Include(tr => tr.User)
             .Include(tr => tr.ApprovedByUser)
             .FirstOrDefaultAsync(tr => tr.Id == travelRequest.Id);
-        
+
         Assert.NotNull(createdTravelRequest);
 
         // Act 2: Manager rejects the request
@@ -210,8 +210,8 @@ public class IntegrationTests : IDisposable
         };
 
         var rejectedRequest = await _travelRequestService.ChangeStatusAsync(
-            travelRequest.Id, 
-            changeStatusRequest, 
+            travelRequest.Id,
+            changeStatusRequest,
             Guid.Parse(managerAuth.UserId));
 
         Assert.Equal(TravelRequestStatus.Rejected, rejectedRequest.Status);
