@@ -62,7 +62,7 @@ jobs:
         ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=TravelRequestsDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;MultipleActiveResultSets=true"
 
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: test-results
